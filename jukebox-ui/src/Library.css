@@ -1,0 +1,105 @@
+.tracks {
+    background-color: var(--row-bg);
+    border-radius: 16px;
+    margin: 8px;
+}
+
+.search {
+    margin: 4px 8px;
+}
+
+.listRow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+}
+
+.listRow:hover {
+    background-color: black;
+}
+
+.track {
+    min-width: 0;
+}
+
+.trackMain {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.trackTitle {
+    font-weight: 700;
+}
+
+.trackAlbum {
+    border-radius: 8px;
+    padding: 4px;
+    font-weight: 500;
+}
+
+.trackAlbum:hover {
+    background-color: var(--row-hgl);
+    color: var(--row-hgl-font);
+    cursor: pointer;
+}
+
+.artist {
+    color: #777;
+    font-size: 1em;
+}
+
+.artistInfo {
+    padding: 0 16px;
+}
+
+.album {
+    margin-top: 3px;
+    color: #999;
+    font-size: 0.8em;
+}
+
+.listRow button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.param-list {
+    overflow: hidden;
+    border-radius: 8px;
+}
+  
+.param-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 10px 14px;
+    gap: 24px;
+}
+  
+.param-row:nth-child(odd) {
+    background: #959595;
+}
+  
+.param-row:nth-child(even) {
+    background: #bfbfbf;
+}
+  
+.param-row dt {
+    font-weight: 500;
+    color: #101010;
+}
+  
+.param-row dd {
+    margin: 0;
+    text-align: right;
+    color: #101010;
+}

@@ -1,0 +1,32 @@
+.twoHalfsContainer {
+    flex: 1 1 auto;
+    min-height: 0;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+}
+
+.halfColumn {
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.halfColumn:first-child {
+    border-right: 1px solid lightgray;
+    padding-right: 8px;
+}
+
+@media (max-width: 700px) {
+    .twoHalfsContainer {
+        grid-template-columns: 1fr;
+    }
+
+    .halfColumn:first-child {
+        border-right: none;
+        border-bottom: 1px solid lightgray;
+        padding-right: 0;
+        padding-bottom: 8px;
+    }
+}

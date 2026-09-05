@@ -1,0 +1,32 @@
+.controlsContainer {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 8px;
+}
+
+.genericIcon {
+    width: 36px;
+    height: 36px;
+
+    background-color: transparent;
+    color: red;
+
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+}
+
+.playerTrack {
+    color: white;
+    font-weight: 500;
+}
+
+.playerArtist {
+    font-weight: 400;
+    font-size: 16px;
+}

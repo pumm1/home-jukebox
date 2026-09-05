@@ -1,0 +1,89 @@
+import { login, scan } from "./api/client"
+import './Navbar.css';
+import { useState } from "react";
+
+export type PageModal = "tracks" | 'albums' | 'artists' | "settings"
+
+interface NavbarProps {
+    setModal: (modal: PageModal) => void
+    setIsAdmin: (isAdmin: boolean) => void
+    isAdmin: Boolean
+}
+
+
+const Navbar = ({ isAdmin, setModal, setIsAdmin }: NavbarProps) => {
+    const [scanLoading, setScanLoading] = useState(false)
+    function logout() {
+        localStorage.removeItem("admin_token");
+        setIsAdmin(false)
+    }
+
+    async function handleScan() {
+        setScanLoading(true)
+        try {
+            await scan()
+            setScanLoading(false)
+        } catch {
+            alert('Scan faild')
+        }
+    }
+
+    async function handleLogin() {
+        const password = prompt("Admin password")
+
+        if (!password) {
+            return;
+        }
+
+        try {
+            await login(password)
+            setIsAdmin(true);
+        } catch {
+            alert("Invalid password")
+        }
+    }
+
+    return (
+
+        <nav className="navbar">
+            <div className="navbar-center">
+                <ul className="nav-links">
+                    <li>
+                        <button onClick={() => setModal("tracks")}>Tracks</button>
+                    </li>
+                    <li>
+                        <button onClick={() => setModal("albums")}>Albums</button>
+                    </li>
+                    <li>
+                        <button onClick={() => setModal("artists")}>Artists</button>
+                    </li>
+                    {isAdmin &&
+                        <li>
+                            <button onClick={() => setModal("settings")}>Settings</button>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div className="navbar-right">
+                {isAdmin && (
+                    <button disabled={scanLoading} onClick={() => handleScan()}>
+                        Scan
+                    </button>
+                )}
+
+                {!isAdmin ? (
+                    <button onClick={handleLogin}>Admin Login</button>
+                ) : (
+                    <button onClick={logout}>Log out</button>
+                )}
+
+                <a href="/account" className="user-icon">
+                    <i className="fas fa-user"></i>
+                </a>
+            </div>
+        </nav>
+    )
+}
+
+export default Navbar;
