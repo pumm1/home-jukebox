@@ -1,7 +1,7 @@
-import React from 'react';
-import { login, apiFetch, streamPath } from "./api/client"
+import { login, scan } from "./api/client"
 import './Navbar.css';
 import { AudioPlayer } from './AudioPlayer';
+import { useState } from "react";
 
 export type PageModal = "home"
 
@@ -13,10 +13,21 @@ interface NavbarProps {
 
 
 const Navbar = ({ isAdmin, setModal, setIsAdmin }: NavbarProps) => {
+    const [scanLoading, setScanLoading] = useState(false)
     function logout() {
         localStorage.removeItem("admin_token");
         setIsAdmin(false)
       }
+
+    async function handleScan() {
+        setScanLoading(true)
+        try {
+            await scan()
+            setScanLoading(false)
+        } catch {
+            alert('Scan faild')
+        }
+    }
 
     async function handleLogin() {
         const password = prompt("Admin password")
@@ -36,9 +47,6 @@ const Navbar = ({ isAdmin, setModal, setIsAdmin }: NavbarProps) => {
     return (
 
         <nav className="navbar">
-            <div className="navbar-left">
-                <AudioPlayer path='test.mp3'/>
-            </div>
             <div className="navbar-center">
                 <ul className="nav-links">
                     <li>
@@ -47,6 +55,7 @@ const Navbar = ({ isAdmin, setModal, setIsAdmin }: NavbarProps) => {
                 </ul>
             </div>
             <div className="navbar-right">
+                {isAdmin && <button disabled={scanLoading} onClick={() => handleScan()}>Scan</button>}
                 {!isAdmin ? (
                     <button onClick={handleLogin}>
                         Admin Login
@@ -60,7 +69,7 @@ const Navbar = ({ isAdmin, setModal, setIsAdmin }: NavbarProps) => {
                 </a>
             </div>
         </nav>
-    );
-};
+    )
+}
 
 export default Navbar;

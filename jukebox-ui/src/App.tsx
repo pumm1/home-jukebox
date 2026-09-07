@@ -1,5 +1,6 @@
 import { useState } from "react"
 import Navbar, { type PageModal } from "./Navbar";
+import PlayerBarFooter from "./PlayerBarFooter";
 
 function App() {
   const [isAdmin, setIsAdmin] = useState(
@@ -15,6 +16,7 @@ function App() {
   return (
     <>
       <Navbar setModal={setModal} setIsAdmin={setIsAdmin} isAdmin={isAdmin}/>
+      <PlayerBarFooter />
     </>
   );
 }

@@ -1,0 +1,21 @@
+.controlsContainer {
+    display: flex;
+    margin: auto;
+    gap: 8px;
+}
+
+.genericIcon {
+    width: 36px;
+    height: 36px;
+
+    background-color: transparent;
+    color: red;
+
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+}
