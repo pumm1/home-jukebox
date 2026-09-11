@@ -3,6 +3,9 @@ export const API_URL = "http://192.168.1.208:9000"
 export const streamPath = (file: string): string =>
   `${API_URL}/stream/${encodeURI(file)}`
 
+export const streamPathById = (trackId: number): string =>
+  `${API_URL}/stream/track/${trackId}`
+
 export async function apiFetch(
   path: string,
   options: RequestInit = {},
@@ -64,4 +67,41 @@ export async function scan() {
   }
 
   console.log(`Scan done`)
+}
+
+export interface  TrackRes{
+  id: number
+  title: string
+  artist_id?: number,
+  artist_name?: string
+  album_id?: number
+  album_name?: string
+}
+
+export async function search(query: string): Promise<TrackRes[]> {
+  const params = new URLSearchParams({
+    query,
+  });
+
+  const response = await fetch(
+    `${API_URL}/search-tracks?${params.toString()}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Search failed: ${response.status}`);
+  }
+
+  return await response.json() as TrackRes[];
+}
+
+export async function getTrackById(trackId: number): Promise<TrackRes> {
+  const response = await fetch(
+    `${API_URL}/track-by-id/${trackId}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Track by ID failed: ${response.status}`);
+  }
+
+  return await response.json() as TrackRes;
 }

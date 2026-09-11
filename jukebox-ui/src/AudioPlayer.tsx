@@ -1,14 +1,10 @@
-import { useRef, useState } from "react";
-import { streamPath } from "./api/client";
+import { useEffect, useRef, useState } from "react";
+import { streamPath, streamPathById, type TrackRes } from "./api/client";
 
 import playIcon from './assets/play.svg'
 import pauseIcon from './assets/pause.svg'
 
 import './AudioPlayer.css'
-
-interface AudioPlayerProps {
-    path: string
-}
 
 interface GenericIconProps {
     src: string
@@ -25,16 +21,21 @@ const GenericIcon = ({ src }: GenericIconProps) => (
     />
 )
 
-const PlayIcon = ({ }) => <GenericIcon src={playIcon} />
-const PauseIcon = ({ }) => <GenericIcon src={pauseIcon} />
+export const PlayIcon = ({ }) => <GenericIcon src={playIcon} />
+export const PauseIcon = ({ }) => <GenericIcon src={pauseIcon} />
 
-export const AudioPlayer = ({ path }: AudioPlayerProps) => {
+
+interface AudioPlayerProps {
+    track?: TrackRes
+}
+
+export const AudioPlayer = ({ track }: AudioPlayerProps) => {
     const audioRef = useRef<HTMLAudioElement>(null)
     const [playing, setPlaying] = useState(false)
 
     const [duration, setDuration] = useState(0)
     const [currentTime, setCurrentTime] = useState(0)
-    const src = streamPath(path)
+    const src = track !== undefined ? streamPathById(track.id) : undefined
 
     async function playAudio() {
         audioRef.current.play()
@@ -54,8 +55,19 @@ export const AudioPlayer = ({ path }: AudioPlayerProps) => {
         setPlaying(!playing)
     }
 
+    useEffect(() => {
+        if (track !== undefined) {
+            audioRef.current.pause()
+            setTimeout(() => {
+                playAudio().then(() => setPlaying(true))
+            }, 750)
+        }
+    }, [track])
+
+
     return (
-        <div className="audio-player">
+        <div className="controlsContainer">
+            {track && <span>{track.title}</span>}
             <audio
                 ref={audioRef}
                 src={src}
@@ -70,7 +82,7 @@ export const AudioPlayer = ({ path }: AudioPlayerProps) => {
 
             <span className="controlsContainer">
                 <button onClick={togglePlay}>
-                    {playing ? <PauseIcon/> : <PlayIcon/>}
+                    {playing ? <PauseIcon /> : <PlayIcon />}
                 </button>
                 <input
                     type="range"

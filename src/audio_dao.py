@@ -14,6 +14,7 @@ TRACKS_TABLE = "tracks"
 class AudioDB:
     def __init__(self, db_name: str):
         self.conn = sqlite3.connect(db_name)
+        self.conn.row_factory = sqlite3.Row
 
         # Enable foreign-key enforcement for this connection
         self.conn.execute("PRAGMA foreign_keys = ON")
@@ -89,6 +90,55 @@ class AudioDB:
     """
     tracks = artist_id, album_id, title, path
     """
+    def track_by_id(self, track_id):
+        cur = self.conn.execute(
+            f"""
+            SELECT 
+                t.id AS track_id,
+                t.title AS track_title,
+                t.artist_id,
+                t.album_id,
+                t.path,
+                al.title AS album_name,
+                ar.name AS artist_name
+            FROM {TRACKS_TABLE} t
+            LEFT JOIN {ALBUMS_TABLE} al
+                ON t.album_id = al.id
+            LEFT JOIN {ARTISTS_TABLE} ar
+                ON t.artist_id = ar.id
+            WHERE
+                t.id = ?
+            """, (track_id,)
+        )
+
+        return cur.fetchone()
+
+    def search_tracks(self, query: str):
+        search = f"%{query}%"
+
+        cur = self.conn.execute(
+            f"""
+            SELECT 
+                t.id AS track_id,
+                t.title AS track_title,
+                t.artist_id,
+                t.album_id,
+                al.title AS album_name,
+                ar.name AS artist_name
+            FROM {TRACKS_TABLE} t
+            LEFT JOIN {ALBUMS_TABLE} al
+                ON t.album_id = al.id
+            LEFT JOIN {ARTISTS_TABLE} ar
+                ON t.artist_id = ar.id
+            WHERE
+                t.title LIKE ?
+                OR al.title LIKE ?
+                OR ar.name LIKE ?
+            """,
+            (search, search, search)
+        )
+
+        return cur.fetchall()
 
     def get_artist_by_name(self, artist: str):
         cur = self.conn.execute(

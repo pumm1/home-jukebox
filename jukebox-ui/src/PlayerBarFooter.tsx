@@ -1,12 +1,25 @@
+import { useEffect, useState } from 'react'
 import { AudioPlayer } from './AudioPlayer'
 
 import './PlayerBarFooter.css'
+import { getTrackById, type TrackRes } from './api/client'
 
-const PlayerBarFooter = ({}) => {
+interface PlayerBarFooterProps {
+    trackId?: number
+}
+
+const PlayerBarFooter = ({trackId}: PlayerBarFooterProps) => {
+
+    const [track, setTrack] = useState<TrackRes | undefined>()
+
+    useEffect(() => {
+        trackId !== undefined && getTrackById(trackId).then(setTrack)
+    }, [trackId])
+
     return (
         <nav className="playerBarFooter">
             <div className="navbar-left">
-                <AudioPlayer path='test.mp3'/>
+                <AudioPlayer track={track}/>
             </div>
         </nav>
     )

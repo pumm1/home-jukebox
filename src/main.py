@@ -10,8 +10,8 @@ from starlette.responses import StreamingResponse, FileResponse, Response
 import os
 import secrets
 
-from audioDAO import AudioDB
-from file_helper import is_dir, is_not_hidden_file, make_path, list_dirs, generate_track_paths, tracks_list
+from audio_dao import AudioDB
+from file_manager import scan_files, search_tracks, track_path_by_id, get_track_by_id
 
 MEDIA_DIR = "./Music"
 
@@ -49,8 +49,6 @@ audio_db.init_db()
 CLIENT_PORT = config_json.get('client_port')
 
 CONFIG_SOURCES = "sources"
-
-MUSIC_DIR = "Music"
 
 print(f'*** CONFIGURED CLIENT PORT: {CLIENT_PORT} ***')
 
@@ -121,67 +119,107 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 async def scan():
     source_dirs = config_json[CONFIG_SOURCES]
 
-    for source_dir in source_dirs:
-        media_type_folders = os.listdir(source_dir)
-
-        new_temp_metas = 0
-        for media_folder in media_type_folders:  # series, movies
-            media_type_dir = make_path(source_dir, media_folder)
-
-            if media_folder == MUSIC_DIR:
-                print(f'Music path: {media_type_dir}')
-                artist_dirs = os.listdir(media_type_dir)
-
-                for file_or_dir in artist_dirs:
-                    file_or_dir_path = make_path(media_type_dir, file_or_dir)
-                    if is_dir(file_or_dir_path):
-                        artist = file_or_dir
-                        artist_row = audio_db.get_artist_by_name(artist = artist)
-                        artist_exists_in_db = artist_row != None
-                        artist_id = None
-                        if not artist_exists_in_db:
-                            print(f"*** Adding new artist [artist = {artist}]")
-                            artist_id = audio_db.add_artist(artist)
-                        else:
-                            artist_id, artist_name = artist_row
-                        album_dirs_or_singles = list_dirs(file_or_dir_path)
-                        for album_or_single in album_dirs_or_singles:
-                            aos_path = make_path(file_or_dir_path, album_or_single)
-                            is_album = is_dir(aos_path)
-                            if is_album:
-                                album = album_or_single
-                                album_row = audio_db.get_album_by_artist_and_album_name(
-                                    artist_id= artist_id, title=album
-                                )
-                                album_exists_in_db = album_row != None
-
-                                album_id = None
-                                if not album_exists_in_db:
-                                    print(f'*** Adding new album [artist = {artist}, album = {album}]')
-                                    audio_db.add_album(artist_id, album)
-                                else:
-                                    album_id, album_title = album_row
-
-                                album_dir = make_path(file_or_dir_path, album)
-
-                                album_tracks = list_dirs(album_dir)
-
-                                track_paths = generate_track_paths(album_dir, album_tracks)
-                                tracks = tracks_list(artist_id, album_id, track_paths)
-                                audio_db.add_tracks(tracks)
-                            elif is_not_hidden_file(album_or_single):
-                                track = album_or_single
-                                print(f'[Track = {track}]')
-                                track_paths = generate_track_paths(file_or_dir_path, [track])
-                                tracks = tracks_list(artist_id, None, track_paths)
-                                audio_db.add_tracks(tracks)
-            elif is_not_hidden_file(media_folder):
-                print(f'Unsupported media type: {media_folder}')
+    scan_files(audio_db, source_dirs)
 
     return Response(
         "OK",
         200
     )
+
+"""
+from fastapi import Query
+
+@app.get("/search-tracks")
+async def search_tracks(
+    query: str = Query(min_length=1, max_length=100)
+):
+    return search_tracks_from_db(audio_db, query)
+"""
+@app.get('/search-tracks')
+async def search(query: str | None):
+    return search_tracks(audio_db, query)
+
+
+@app.get('/track-by-id/{track_id}')
+async def track_by_id(track_id: int, request: Request):
+    track_opt = get_track_by_id(audio_db, track_id)
+    if track_opt is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Track not found",
+        )
+    return track_opt
+
+
+@app.get("/stream/track/{track_id}")
+async def stream_track(track_id: int, request: Request):
+    file_path = track_path_by_id(audio_db, track_id)
+
+    if file_path is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Track not found",
+        )
+    range_header = request.headers.get("range")
+
+    if not range_header:
+        return FileResponse(
+            file_path,
+            media_type="audio/mp3",
+            headers={
+                "Accept-Ranges": "bytes",
+            },
+        )
+    file_size = os.path.getsize(file_path)
+    start = 0
+    end = 0
+
+    try:
+        range_value = range_header.replace("bytes=", "")
+        start_str, end_str = range_value.split("-", 1)
+
+        start = int(start_str) if start_str else 0
+        end = int(end_str) if end_str else file_size - 1
+
+    except (ValueError, IndexError):
+        return {"error": "Invalid range"}
+
+    start = max(0, start)
+    end = min(end, file_size - 1)
+
+    if start > end or start >= file_size:
+        return {"error": "Invalid range"}
+
+    content_length = end - start + 1
+
+    def iter_file():
+        with open(file_path, "rb") as file:
+            file.seek(start)
+
+            remaining = content_length
+
+            while remaining > 0:
+                chunk = file.read(min(8192, remaining))
+
+                if not chunk:
+                    break
+
+                remaining -= len(chunk)
+                yield chunk
+
+    headers = {
+        "Content-Range": f"bytes {start}-{end}/{file_size}",
+        "Accept-Ranges": "bytes",
+        "Content-Length": str(content_length),
+    }
+
+    return StreamingResponse(
+        iter_file(),
+        status_code=206,
+        media_type="audio/mp3",
+        headers=headers,
+    )
+
 
 @app.get("/stream/{path:path}")
 async def stream_test(path: str, request: Request):

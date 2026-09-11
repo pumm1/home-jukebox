@@ -1,0 +1,53 @@
+.tracks {
+    max-width: 30rem;
+}
+
+.search {
+    margin: 4px 8px;
+}
+
+.listRow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+}
+
+.listRow:hover {
+    background-color: black;
+}
+
+.track {
+    min-width: 0;
+}
+
+.trackMain {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.trackTitle {
+    font-weight: 700;
+}
+
+.artist {
+    color: #777;
+    font-size: 1em;
+}
+
+.album {
+    margin-top: 3px;
+    color: #999;
+    font-size: 0.8em;
+}
+
+.listRow button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
