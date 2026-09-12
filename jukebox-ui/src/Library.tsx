@@ -6,28 +6,39 @@ import type { TrackRes } from './api/client'
 import './Library.css'
 import { PlayIcon } from './AudioPlayer'
 
+interface ListingRowProps {
+    mainItem: string
+    secondaryItem?: string
+    additionalItem?: string
+}
+
+export const ListingRow = ({ mainItem, secondaryItem, additionalItem }: ListingRowProps) =>
+    <div className="track">
+        <div className="trackMain">
+            <span className="trackTitle">{mainItem}</span>
+            {secondaryItem && (
+                <span className="artist">{secondaryItem}</span>
+            )}
+        </div>
+
+        {additionalItem && (
+            <div className="album">{additionalItem}</div>
+        )}
+    </div>
+
+
 interface TrackRowProps {
     track: TrackRes
     setTrack: (id: number) => void
     showPlay?: boolean
 }
+
 export const TrackRow = ({ track, setTrack, showPlay }: TrackRowProps) => {
     const { album_name, artist_name, title } = track
 
     return (
         <div className="listRow">
-            <div className="track">
-                <div className="trackMain">
-                    <span className="trackTitle">{title}</span>
-                    {artist_name && (
-                        <span className="artist">{artist_name}</span>
-                    )}
-                </div>
-
-                {album_name && (
-                    <div className="album">{album_name}</div>
-                )}
-            </div>
+            <ListingRow mainItem={title} secondaryItem={artist_name} additionalItem={album_name} />
 
             {showPlay && (
                 <button onClick={() => setTrack(track.id)}>

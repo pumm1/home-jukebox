@@ -3,7 +3,7 @@ import './Navbar.css';
 import { AudioPlayer } from './AudioPlayer';
 import { useState } from "react";
 
-export type PageModal = "home"
+export type PageModal = "home" | "settings"
 
 interface NavbarProps {
     setModal: (modal: PageModal) => void
@@ -17,7 +17,7 @@ const Navbar = ({ isAdmin, setModal, setIsAdmin }: NavbarProps) => {
     function logout() {
         localStorage.removeItem("admin_token");
         setIsAdmin(false)
-      }
+    }
 
     async function handleScan() {
         setScanLoading(true)
@@ -52,18 +52,27 @@ const Navbar = ({ isAdmin, setModal, setIsAdmin }: NavbarProps) => {
                     <li>
                         <button onClick={() => setModal("home")}>Home</button>
                     </li>
+                    {isAdmin &&
+                        <li>
+                            <button onClick={() => setModal("settings")}>Settings</button>
+                        </li>
+                    }
                 </ul>
             </div>
+
             <div className="navbar-right">
-                {isAdmin && <button disabled={scanLoading} onClick={() => handleScan()}>Scan</button>}
+                {isAdmin && (
+                    <button disabled={scanLoading} onClick={() => handleScan()}>
+                        Scan
+                    </button>
+                )}
+
                 {!isAdmin ? (
-                    <button onClick={handleLogin}>
-                        Admin Login
-                    </button>
-                ) : <button onClick={logout}>
-                        Log out
-                    </button>
-                    }
+                    <button onClick={handleLogin}>Admin Login</button>
+                ) : (
+                    <button onClick={logout}>Log out</button>
+                )}
+
                 <a href="/account" className="user-icon">
                     <i className="fas fa-user"></i>
                 </a>

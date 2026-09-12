@@ -2,6 +2,17 @@ import { useState } from "react"
 import Navbar, { type PageModal } from "./Navbar";
 import PlayerBarFooter from "./PlayerBarFooter";
 import { Library } from './Library'
+import Settings from "./Settings";
+
+import './App.css'
+
+const PageContents = ({ children }: { children: React.ReactNode }) => {
+  return (
+      <div className="pageContents">
+          {children}
+      </div>
+  );
+};
 
 function App() {
   const [isAdmin, setIsAdmin] = useState(
@@ -11,16 +22,31 @@ function App() {
   const [pageModal, setPageModal] = useState<PageModal>("home")
   const [trackId, setTrackId] = useState<number | undefined>(undefined)
 
-  const setModal = (modal: PageModal) => {
-    setPageModal(modal)
+  const ShownModal = ({ }) => {
+    switch (pageModal) {
+      case 'home':
+        return <Library setTrack={setTrackId} />
+      case 'settings':
+        return <Settings />
+      default:
+        throw new Error(`Invalid page! ${pageModal}`);
+    }
   }
 
   return (
-    <>
-      <Navbar setModal={setModal} setIsAdmin={setIsAdmin} isAdmin={isAdmin}/>
-      <Library setTrack={setTrackId}/>
-      <PlayerBarFooter trackId={trackId}/>
-    </>
+    <div className="app">
+      <Navbar
+        setModal={setPageModal}
+        setIsAdmin={setIsAdmin}
+        isAdmin={isAdmin}
+      />
+  
+      <PageContents>
+        <ShownModal />
+      </PageContents>
+  
+      <PlayerBarFooter trackId={trackId} />
+    </div>
   );
 }
 

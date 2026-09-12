@@ -1,69 +1,10 @@
 from file_helper import list_dirs, make_path, is_dir, is_not_hidden_file, generate_track_paths, tracks_list
-from audio_dao import AudioDB
-
+from audio_dao import AudioDB, TrackRes, ArtistRes
 
 MUSIC_DIR = "Music"
 
-ID_PARAM = 'id'
-TITLE_PARAM = 'title'
-NAME_PARAM = 'name'
-ARTIST_NAME_PARAM = 'artist_name'
-ALBUM_NAME_PARAM = 'album_name'
-ARTIST_ID_PARAM = 'artist_id'
-ALBUM_ID_PARAM = 'album_id'
-
 track_path_cache: dict[int, str] = {}
 
-class ArtistRes:
-    def __init__(self, id: int, name: str):
-        self.id = id
-        self.name = name
-
-    def as_json(self):
-        return {
-            ID_PARAM: self.id,
-            NAME_PARAM: self.name
-        }
-
-class AlbumRes:
-    def __init__(self, id: int, title: str, artist_id: int):
-        self.id = id
-        self.title = title
-        self.artist_id = artist_id
-
-    def as_json(self):
-        return {
-            ID_PARAM: self.id,
-            TITLE_PARAM: self.title,
-            ARTIST_ID_PARAM: self.artist_id
-        }
-
-class TrackRes:
-    def __init__(
-        self,
-        id: int,
-        title: str,
-        artist_id: int | None,
-        artist_name: str | None,
-        album_id: int | None,
-        album_name: str | None,
-    ):
-        self.id = id
-        self.title = title
-        self.artist_id = artist_id
-        self.artist_name = artist_name
-        self.album_id = album_id
-        self.album_name = album_name
-
-    def as_json(self):
-        return {
-            ID_PARAM: self.id,
-            TITLE_PARAM: self.title,
-            ARTIST_ID_PARAM: self.artist_id,
-            ARTIST_NAME_PARAM: self.artist_name,
-            ALBUM_ID_PARAM: self.album_id,
-            ALBUM_NAME_PARAM: self.album_name,
-        }
 def track_path_by_id(audio_db: AudioDB, track_id: int):
     path = None
     path = track_path_cache.get(track_id)
@@ -95,6 +36,17 @@ def search_tracks(audio_db: AudioDB, query: str | None):
         ).as_json()
         for row in rows
     ]
+
+# require_settings; True/False for mbid existing; None = don't care about mbid
+def search_artists(audio_db: AudioDB, has_mbid: bool | None):
+    rows = audio_db.list_artists(has_mbid)
+    return [
+        row.as_json()
+        for row in rows
+    ]
+
+def update_artist(audio_db: AudioDB, artist_id: int, mbid: str):
+    audio_db.update_artist(artist_id, mbid)
 
 def get_track_by_id(audio_db: AudioDB, track_id: int):
     row = audio_db.track_by_id(track_id)

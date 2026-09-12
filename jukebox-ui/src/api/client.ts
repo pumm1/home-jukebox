@@ -69,13 +69,27 @@ export async function scan() {
   console.log(`Scan done`)
 }
 
-export interface  TrackRes{
+export interface TrackRes {
   id: number
   title: string
   artist_id?: number,
   artist_name?: string
   album_id?: number
   album_name?: string
+}
+
+export interface AlbumRes {
+  id: number
+  title: string
+  artist_id: number
+  mb_release_id?: string
+}
+
+export interface ArtistRes {
+  id: number
+  name: string
+  mbid?: string
+  albums: AlbumRes[]
 }
 
 export async function search(query: string): Promise<TrackRes[]> {
@@ -104,4 +118,46 @@ export async function getTrackById(trackId: number): Promise<TrackRes> {
   }
 
   return await response.json() as TrackRes;
+}
+
+export async function listArtists(has_mbid?: boolean): Promise<ArtistRes[]> {
+  const params = new URLSearchParams();
+
+  if (has_mbid !== undefined) {
+    params.set("has_mbid", String(has_mbid));
+  }
+
+  const response = await fetch(
+    `${API_URL}/list-artists?${params.toString()}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Search failed: ${response.status}`);
+  }
+
+  return await response.json() as ArtistRes[];
+}
+
+export async function updateArtistMBID(
+  artist_id: number,
+  mbid: string
+) {
+  const response = await fetch(
+    `${API_URL}/update-artist-mbid/${artist_id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        mbid,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Update failed: ${response.status}`);
+  }
+
+  console.log("Artist MBID updated");
 }

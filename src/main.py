@@ -10,8 +10,10 @@ from starlette.responses import StreamingResponse, FileResponse, Response
 import os
 import secrets
 
+from pydantic import BaseModel
+
 from audio_dao import AudioDB
-from file_manager import scan_files, search_tracks, track_path_by_id, get_track_by_id
+from file_manager import scan_files, search_tracks, track_path_by_id, get_track_by_id, search_artists, update_artist
 
 MEDIA_DIR = "./Music"
 
@@ -61,13 +63,25 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://192.168.1.208:5173",
     ],
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PUT"],
     allow_headers=["*"],
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 active_tokens: set[str] = set()
+"""
+# == MusicBrainz API == #
+# artist info as json (mbid)
+https://musicbrainz.org/ws/2/artist/6b4e962d-3dbc-4bda-82f0-25d35786f076?fmt=json
+# artist's releases (albums/singles)
+https://musicbrainz.org/ws/2/release-group/?artist=6b4e962d-3dbc-4bda-82f0-25d35786f076&fmt=json
+# release info as json (release_id)
+https://musicbrainz.org/ws/2/release/a95f2543-e597-4481-99b8-31e5d1d6d0b4?fmt=json
+# release cover art as json (release_id)
+https://coverartarchive.org/release/a95f2543-e597-4481-99b8-31e5d1d6d0b4
+
+"""
 
 """
 USAGE:
@@ -139,9 +153,25 @@ async def search_tracks(
 async def search(query: str | None):
     return search_tracks(audio_db, query)
 
+@app.get('/list-artists')
+async def list_artists_for_settings(has_mbid: bool | None = None):
+    return search_artists(audio_db, has_mbid=has_mbid)
+
+class UpdateArtistMBID(BaseModel):
+    mbid: str
+
+
+@app.put("/update-artist-mbid/{artist_id}")
+async def update_artist_mbid(
+    artist_id: int,
+    data: UpdateArtistMBID,
+):
+    update_artist(audio_db, artist_id, data.mbid)
+
+    return {"status": "ok"}
 
 @app.get('/track-by-id/{track_id}')
-async def track_by_id(track_id: int, request: Request):
+async def track_by_id(track_id: int):
     track_opt = get_track_by_id(audio_db, track_id)
     if track_opt is None:
         raise HTTPException(

@@ -1,0 +1,16 @@
+.settingsColumns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+}
+
+.settingsColumn {
+    overflow-y: auto;
+    height: 80vh;
+    min-width: 0;
+}
+
+.settingsColumn:first-child {
+    border-right: 1px solid lightgray;
+    padding-right: 8px;
+}

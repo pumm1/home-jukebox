@@ -10,6 +10,84 @@ conn.execute("PRAGMA foreign_keys = ON")
 ARTISTS_TABLE = "artists"
 ALBUMS_TABLE = "albums"
 TRACKS_TABLE = "tracks"
+RELEASE_META_TABLE = "release_metas"
+
+# == for classes == #
+ID_PARAM = 'id'
+TITLE_PARAM = 'title'
+NAME_PARAM = 'name'
+ARTIST_NAME_PARAM = 'artist_name'
+ALBUM_NAME_PARAM = 'album_name'
+ALBUMS_PARAM = 'albums'
+ARTIST_ID_PARAM = 'artist_id'
+ALBUM_ID_PARAM = 'album_id'
+MBID_PARAM = 'mbid'
+MB_RELEASE_ID_PARAM = 'mb_release_id'
+
+class TrackRes:
+    def __init__(
+        self,
+        id: int,
+        title: str,
+        artist_id: int | None,
+        artist_name: str | None,
+        album_id: int | None,
+        album_name: str | None,
+    ):
+        self.id = id
+        self.title = title
+        self.artist_id = artist_id
+        self.artist_name = artist_name
+        self.album_id = album_id
+        self.album_name = album_name
+
+    def as_json(self):
+        return {
+            ID_PARAM: self.id,
+            TITLE_PARAM: self.title,
+            ARTIST_ID_PARAM: self.artist_id,
+            ARTIST_NAME_PARAM: self.artist_name,
+            ALBUM_ID_PARAM: self.album_id,
+            ALBUM_NAME_PARAM: self.album_name,
+        }
+
+
+class AlbumRes:
+    def __init__(self, id: int, title: str, artist_id: int, mb_release_id: str | None):
+        self.id = id
+        self.title = title
+        self.artist_id = artist_id
+        self.mb_release_id = mb_release_id
+
+    def as_json(self):
+        return {
+            ID_PARAM: self.id,
+            TITLE_PARAM: self.title,
+            ARTIST_ID_PARAM: self.artist_id,
+            MB_RELEASE_ID_PARAM: self.mb_release_id
+        }
+
+
+class ArtistRes:
+    def __init__(self, id: int, name: str, mbid: str | None, albums: list[AlbumRes]):
+        self.id = id
+        self.name = name
+        self.mbid = mbid
+        self.albums = albums
+
+    def as_json(self):
+        albums_json = [
+            album.as_json()
+            for album in self.albums
+        ]
+        return {
+            ID_PARAM: self.id,
+            NAME_PARAM: self.name,
+            MBID_PARAM: self.mbid,
+            ALBUMS_PARAM: albums_json
+        }
+
+
 
 class AudioDB:
     def __init__(self, db_name: str):
@@ -25,13 +103,16 @@ class AudioDB:
             f"""
             CREATE TABLE IF NOT EXISTS {ARTISTS_TABLE} (
                 id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL UNIQUE
+                name TEXT NOT NULL UNIQUE,
+                mbid TEXT
             );
 
             CREATE TABLE IF NOT EXISTS {ALBUMS_TABLE} (
                 id INTEGER PRIMARY KEY,
                 title TEXT NOT NULL,
                 artist_id INTEGER NOT NULL,
+                mb_release_group_id TEXT,
+                mb_release_id TEXT,
 
                 FOREIGN KEY (artist_id)
                     REFERENCES {ARTISTS_TABLE}(id)
@@ -45,6 +126,11 @@ class AudioDB:
                 path TEXT NOT NULL UNIQUE,
                 FOREIGN KEY (artist_id) REFERENCES artists(id),
                 FOREIGN KEY (album_id) REFERENCES albums(id)
+            );
+            
+            CREATE TABLE IF NOT EXISTS {RELEASE_META_TABLE} (
+                mb_release_id TEXT PRIMARY KEY,
+                data TEXT NOT NULL
             );
 
             CREATE INDEX IF NOT EXISTS idx_track_title
@@ -139,6 +225,66 @@ class AudioDB:
         )
 
         return cur.fetchall()
+
+    # mb_release_id
+    def list_artists(self, has_mbid):
+        cur = self.conn.execute(
+            f"""
+            SELECT
+                a.id AS artist_id,
+                a.name AS artist_name,
+                a.mbid,
+                al.id AS album_id,
+                al.title AS album_title,
+                al.mb_release_id
+            FROM {ARTISTS_TABLE} a
+            LEFT JOIN {ALBUMS_TABLE} al
+                ON a.id = al.artist_id
+            WHERE
+                :has_mbid IS NULL
+                OR (:has_mbid = TRUE AND a.mbid IS NOT NULL)
+                OR (:has_mbid = FALSE AND a.mbid IS NULL)
+            ORDER BY a.name, al.title
+            """,
+            {"has_mbid": has_mbid}
+        )
+
+        artists = {}
+
+        for row in cur.fetchall():
+            artist_id = row["artist_id"]
+
+            if artist_id not in artists:
+                artists[artist_id] = ArtistRes(
+                    id=artist_id,
+                    name=row["artist_name"],
+                    mbid=row["mbid"],
+                    albums=[]
+                )
+
+            if row["album_id"] is not None:
+                artists[artist_id].albums.append(
+                    AlbumRes(
+                        id=row["album_id"],
+                        title=row["album_title"],
+                        artist_id=artist_id,
+                        mb_release_id=row["mb_release_id"]
+                    )
+                )
+
+        return list(artists.values())
+
+    def update_artist(self, artist_id: int, mbid: str):
+        self.conn.execute(
+            f"""
+            UPDATE {ARTISTS_TABLE}
+            SET mbid = ?
+            WHERE id = ?
+            """, (mbid, artist_id, )
+        )
+
+        self.conn.commit()
+
 
     def get_artist_by_name(self, artist: str):
         cur = self.conn.execute(

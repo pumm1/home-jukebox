@@ -1,55 +1,48 @@
 .navbar {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: stretch; /* allows children to use navbar height */
     background-color: #333;
     color: #fff;
-    padding: 1rem;
+    padding: 0 1rem;
+    min-height: 60px;
+    flex-shrink: 0;
 }
 
-.navbar-left .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #fff;
-    text-decoration: none;
+.navbar-center {
+    display: flex;
+    align-items: stretch;
 }
 
-.navbar-center .nav-links {
-    list-style-type: none;
+.nav-links {
+    list-style: none;
     display: flex;
     margin: 0;
     padding: 0;
 }
 
-.navbar-center .nav-links li {
-    margin-right: 1rem;
-}
-
-.navbar-center .nav-links a {
-    color: #fff;
-    text-decoration: none;
-}
-
-.navbar-right {
+.nav-links li {
     display: flex;
-    align-items: center;
 }
 
-.navbar-right .cart-icon,
-.navbar-right .user-icon {
+.nav-links button {
+    border: none;
+    background: transparent;
     color: #fff;
-    text-decoration: none;
-    margin-left: 1rem;
-    position: relative;
+    padding: 0 1.25rem;
+
+    /* Makes the button fill the navbar vertically */
+    height: 100%;
+
+    font: inherit;
+    cursor: pointer;
 }
 
-.navbar-right .cart-count {
-    background-color: #f44336;
-    color: #fff;
-    border-radius: 50%;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.8rem;
-    position: absolute;
-    top: -0.5rem;
-    right: -0.5rem;
+.nav-links button:hover {
+    background-color: #444;
+}
+
+.nav-links button:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -2px;
 }
