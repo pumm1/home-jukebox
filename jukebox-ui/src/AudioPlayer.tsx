@@ -1,28 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { streamPath, streamPathById, type TrackRes } from "./api/client";
-
-import playIcon from './assets/play.svg'
-import pauseIcon from './assets/pause.svg'
+import { streamPathById, type TrackRes } from "./api/client";
 
 import './AudioPlayer.css'
-
-interface GenericIconProps {
-    src: string
-}
-
-const GenericIcon = ({ src }: GenericIconProps) => (
-    <div
-        className="genericIcon"
-        style={{
-            backgroundColor: "white",
-            maskImage: `url("${src}")`,
-            WebkitMaskImage: `url("${src}")`,
-        }}
-    />
-)
-
-export const PlayIcon = ({ }) => <GenericIcon src={playIcon} />
-export const PauseIcon = ({ }) => <GenericIcon src={pauseIcon} />
+import { PauseIcon, PlayIcon } from "./Common";
 
 
 interface AudioPlayerProps {

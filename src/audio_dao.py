@@ -91,7 +91,7 @@ class ArtistRes:
 
 class AudioDB:
     def __init__(self, db_name: str):
-        self.conn = sqlite3.connect(db_name)
+        self.conn = sqlite3.connect(db_name, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
 
         # Enable foreign-key enforcement for this connection
@@ -130,7 +130,9 @@ class AudioDB:
             
             CREATE TABLE IF NOT EXISTS {RELEASE_META_TABLE} (
                 mb_release_id TEXT PRIMARY KEY,
-                data TEXT NOT NULL
+                data TEXT NOT NULL,
+                image_name TEXT,
+                image_data BLOB
             );
 
             CREATE INDEX IF NOT EXISTS idx_track_title
@@ -285,6 +287,34 @@ class AudioDB:
 
         self.conn.commit()
 
+    def set_album_release_id(
+            self,
+            album_id: int,
+            release_id: str,
+            data: str,
+            image_name: str | None,
+            image_data: bytes | None,
+    ):
+        self.conn.execute(
+            f"""
+            UPDATE {ALBUMS_TABLE}
+            SET mb_release_id = ?
+            WHERE id = ?
+            """,
+            (release_id, album_id),
+        )
+
+        self.conn.execute(
+            f"""
+            INSERT INTO {RELEASE_META_TABLE}
+            (mb_release_id, data, image_name, image_data)
+            VALUES (?, ?, ?, ?)
+            """,
+            (release_id, data, image_name, image_data),
+        )
+
+        self.conn.commit()
+
 
     def get_artist_by_name(self, artist: str):
         cur = self.conn.execute(
@@ -294,6 +324,20 @@ class AudioDB:
             WHERE name = ?
             """,
             (artist,)
+        )
+
+        return cur.fetchone()
+
+    def album_img_by_release_id(self, release_id: str):
+        cur = self.conn.execute(
+            f"""
+                    SELECT
+                        image_name,
+                        image_data as data
+                    FROM {RELEASE_META_TABLE}
+                        WHERE mb_release_id = ?
+                    """,
+            (release_id,)
         )
 
         return cur.fetchone()

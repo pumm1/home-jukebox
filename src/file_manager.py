@@ -1,5 +1,11 @@
+import json
+
 from file_helper import list_dirs, make_path, is_dir, is_not_hidden_file, generate_track_paths, tracks_list
 from audio_dao import AudioDB, TrackRes, ArtistRes
+from api_manager import get_release
+
+from urllib.parse import urlparse
+from pathlib import PurePosixPath
 
 MUSIC_DIR = "Music"
 
@@ -47,6 +53,34 @@ def search_artists(audio_db: AudioDB, has_mbid: bool | None):
 
 def update_artist(audio_db: AudioDB, artist_id: int, mbid: str):
     audio_db.update_artist(artist_id, mbid)
+
+
+def set_album_release_id_and_fetch_data(
+    audio_db: AudioDB,
+    album_id: int,
+    release_id: str,
+):
+    release_data, image_url, image_data = get_release(release_id)
+
+    image_name = PurePosixPath(
+        urlparse(image_url).path
+    ).name
+
+    data_text = json.dumps(release_data)
+
+    audio_db.set_album_release_id(
+        album_id,
+        release_id,
+        data_text,
+        image_name,
+        image_data,
+    )
+
+def fetch_album_image_by_release_id(audio_db: AudioDB, release_id: str):
+    row = audio_db.album_img_by_release_id(release_id)
+
+    return row
+
 
 def get_track_by_id(audio_db: AudioDB, track_id: int):
     row = audio_db.track_by_id(track_id)

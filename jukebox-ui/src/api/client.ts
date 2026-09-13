@@ -161,3 +161,41 @@ export async function updateArtistMBID(
 
   console.log("Artist MBID updated");
 }
+
+export async function updateAlbumReleaseId(
+  album_id: number,
+  release_id: string
+) {
+  const response = await fetch(
+    `${API_URL}/set-album-release-id/${album_id}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        release_id,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Update failed: ${response.status}`);
+  }
+
+  console.log("Artist MBID updated");
+}
+
+export async function albumImgByReleaseId(releaseId: string) {
+  const response = await fetch(
+    `${API_URL}/albums/${releaseId}/image`
+  );
+
+  if (!response.ok) {
+    return null
+  }
+
+  const blob = await response.blob()
+
+  return URL.createObjectURL(blob)
+}

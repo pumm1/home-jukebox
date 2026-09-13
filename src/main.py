@@ -13,7 +13,8 @@ import secrets
 from pydantic import BaseModel
 
 from audio_dao import AudioDB
-from file_manager import scan_files, search_tracks, track_path_by_id, get_track_by_id, search_artists, update_artist
+from file_manager import scan_files, search_tracks, track_path_by_id, get_track_by_id, search_artists, update_artist, \
+    set_album_release_id_and_fetch_data, fetch_album_image_by_release_id
 
 MEDIA_DIR = "./Music"
 
@@ -160,6 +161,8 @@ async def list_artists_for_settings(has_mbid: bool | None = None):
 class UpdateArtistMBID(BaseModel):
     mbid: str
 
+class SetAlbumReleaseId(BaseModel):
+    release_id: str
 
 @app.put("/update-artist-mbid/{artist_id}")
 async def update_artist_mbid(
@@ -169,6 +172,27 @@ async def update_artist_mbid(
     update_artist(audio_db, artist_id, data.mbid)
 
     return {"status": "ok"}
+
+@app.post("/set-album-release-id/{album_id}")
+async def set_album_release_id(
+        album_id: int,
+        data: SetAlbumReleaseId
+):
+    set_album_release_id_and_fetch_data(audio_db, album_id, data.release_id)
+
+@app.get("/albums/{release_id}/image")
+def get_album_image(release_id: str):
+    row = fetch_album_image_by_release_id(audio_db, release_id)
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    image_name, image_data = row
+
+    return Response(
+        content=image_data,
+        media_type="image/jpeg",
+    )
 
 @app.get('/track-by-id/{track_id}')
 async def track_by_id(track_id: int):

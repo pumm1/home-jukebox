@@ -4,12 +4,12 @@ import { search } from './api/client'
 import type { TrackRes } from './api/client'
 
 import './Library.css'
-import { PlayIcon } from './AudioPlayer'
+import { PlayIcon } from './Common'
 
 interface ListingRowProps {
-    mainItem: string
-    secondaryItem?: string
-    additionalItem?: string
+    mainItem: React.ReactElement
+    secondaryItem?: React.ReactElement
+    additionalItem?: React.ReactElement
 }
 
 export const ListingRow = ({ mainItem, secondaryItem, additionalItem }: ListingRowProps) =>
@@ -38,7 +38,7 @@ export const TrackRow = ({ track, setTrack, showPlay }: TrackRowProps) => {
 
     return (
         <div className="listRow">
-            <ListingRow mainItem={title} secondaryItem={artist_name} additionalItem={album_name} />
+            <ListingRow mainItem={<>{title}</>} secondaryItem={<>{artist_name}</>} additionalItem={<>{album_name}</>} />
 
             {showPlay && (
                 <button onClick={() => setTrack(track.id)}>

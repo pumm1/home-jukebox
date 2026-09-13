@@ -2,5 +2,4 @@ ffmpeg-python
 fastapi
 uvicorn
 python-multipart
-sqlite3
-redis
+requests
