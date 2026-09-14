@@ -47,7 +47,11 @@ export const AudioPlayer = ({ track }: AudioPlayerProps) => {
 
     return (
         <div className="controlsContainer">
-            {track && <span>{track.title}</span>}
+            {track && 
+                <span>
+                    <div className="playerTrack">{track.title}</div>
+                    {!!track.artist_name && <div className="playerArtist">{track.artist_name}</div>}
+                </span>}
             <audio
                 ref={audioRef}
                 src={src}

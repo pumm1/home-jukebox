@@ -37,11 +37,13 @@ const ArtistAlbumRow = ({ album }: AritstAlbumRow) => {
 
 
     return (
-        <>
-            <div>{album.title}</div>
-            <div><input value={mbReleaseId} onChange={e => setMbReleaseId(e.target.value)} /><button disabled={isLoading || hasMbReleaseIdSet} onClick={() => saveReleaseId(album.id)}>Save MB_RELEASE_ID</button></div>
+        <div className="albumSettingRow">
+            <div>
+                <div>{album.title}</div>
+                <div><input value={mbReleaseId} onChange={e => setMbReleaseId(e.target.value)} /><button disabled={isLoading || hasMbReleaseIdSet} onClick={() => saveReleaseId(album.id)}>Save MB_RELEASE_ID</button></div>                
+            </div>
             {!!albumImg && <img className="thumbnail" src={albumImg} />}
-        </>
+        </div>
     )
 }
 

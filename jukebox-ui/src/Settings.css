@@ -15,7 +15,8 @@
     padding-right: 8px;
 }
 
-.copyRow {
+.albumSettingRow {
     display: flex;
     align-items: center;
+    gap: 8px;
 }
