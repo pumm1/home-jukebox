@@ -76,6 +76,16 @@ def set_album_release_id_and_fetch_data(
         image_data,
     )
 
+
+# TODO: pagination to all searches later
+def search_albums(audio_db: AudioDB, query: str | None):
+    if query is None:
+        query = ''
+    albums = audio_db.search_albums(query)
+
+    return albums
+
+
 def fetch_album_image_by_release_id(audio_db: AudioDB, release_id: str):
     row = audio_db.album_img_by_release_id(release_id)
 

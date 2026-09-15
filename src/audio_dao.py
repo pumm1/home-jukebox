@@ -53,10 +53,11 @@ class TrackRes:
 
 
 class AlbumRes:
-    def __init__(self, id: int, title: str, artist_id: int, mb_release_id: str | None):
+    def __init__(self, id: int, title: str, artist_id: int, artist_name: str, mb_release_id: str | None):
         self.id = id
         self.title = title
         self.artist_id = artist_id
+        self.artist_name = artist_name
         self.mb_release_id = mb_release_id
 
     def as_json(self):
@@ -64,6 +65,7 @@ class AlbumRes:
             ID_PARAM: self.id,
             TITLE_PARAM: self.title,
             ARTIST_ID_PARAM: self.artist_id,
+            ARTIST_NAME_PARAM: self.artist_name,
             MB_RELEASE_ID_PARAM: self.mb_release_id
         }
 
@@ -201,6 +203,42 @@ class AudioDB:
 
         return cur.fetchone()
 
+    def search_albums(self, query: str):
+        search = f"%{query}%"
+        cur = self.conn.execute(
+            f"""
+            SELECT
+                a.id AS album_id,
+                a.title,
+                a.artist_id,
+                a.mb_release_id,
+                ar.name AS artist_name,
+                ar.mbid
+            FROM {ALBUMS_TABLE} a
+            JOIN {ARTISTS_TABLE} ar
+                ON a.artist_id = ar.id
+            WHERE 
+                a.title LIKE ?
+            OR
+                ar.name LIKE ? 
+            """, (search, search)
+        )
+
+        albums = []
+        for row in cur.fetchall():
+            artist_id = row["artist_id"]
+            a = AlbumRes(
+                id=row["album_id"],
+                title=row["title"],
+                artist_id=artist_id,
+                artist_name=row["artist_name"],
+                mb_release_id=row["mb_release_id"]
+            )
+            albums.append(a.as_json())
+
+        return albums
+
+
     def search_tracks(self, query: str):
         search = f"%{query}%"
 
@@ -270,6 +308,7 @@ class AudioDB:
                         id=row["album_id"],
                         title=row["album_title"],
                         artist_id=artist_id,
+                        artist_name=row["artist_name"],
                         mb_release_id=row["mb_release_id"]
                     )
                 )

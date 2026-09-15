@@ -82,6 +82,7 @@ export interface AlbumRes {
   id: number
   title: string
   artist_id: number
+  artist_name: string
   mb_release_id?: string
 }
 
@@ -92,7 +93,7 @@ export interface ArtistRes {
   albums: AlbumRes[]
 }
 
-export async function search(query: string): Promise<TrackRes[]> {
+export async function searchTracks(query: string): Promise<TrackRes[]> {
   const params = new URLSearchParams({
     query,
   });
@@ -106,6 +107,22 @@ export async function search(query: string): Promise<TrackRes[]> {
   }
 
   return await response.json() as TrackRes[];
+}
+
+export async function searchAlbums(query: string): Promise<AlbumRes[]> {
+  const params = new URLSearchParams({
+    query,
+  });
+
+  const response = await fetch(
+    `${API_URL}/albums?${params.toString()}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Search failed: ${response.status}`);
+  }
+
+  return await response.json() as AlbumRes[];
 }
 
 export async function getTrackById(trackId: number): Promise<TrackRes> {

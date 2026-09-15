@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 from audio_dao import AudioDB
 from file_manager import scan_files, search_tracks, track_path_by_id, get_track_by_id, search_artists, update_artist, \
-    set_album_release_id_and_fetch_data, fetch_album_image_by_release_id
+    set_album_release_id_and_fetch_data, fetch_album_image_by_release_id, search_albums
 
 MEDIA_DIR = "./Music"
 
@@ -179,6 +179,11 @@ async def set_album_release_id(
         data: SetAlbumReleaseId
 ):
     set_album_release_id_and_fetch_data(audio_db, album_id, data.release_id)
+
+
+@app.get("/albums")
+def get_albums(query: str | None):
+    return search_albums(audio_db, query)
 
 @app.get("/albums/{release_id}/image")
 def get_album_image(release_id: str):
